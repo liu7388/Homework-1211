@@ -13,6 +13,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.pow
 
 class MainActivity : AppCompatActivity() {
@@ -58,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                 edHeight.text.isEmpty() -> showToast("請輸入身高")
                 edWeight.text.isEmpty() -> showToast("請輸入體重")
                 edAge.text.isEmpty() -> showToast("請輸入年齡")
-                else -> runThread() // 執行 runThread 方法
+                else -> runCoroutine() // 執行 runCoroutine 方法
             }
         }
     }
@@ -67,8 +71,8 @@ class MainActivity : AppCompatActivity() {
     private fun showToast(msg: String) =
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
-    // 用 Thread 模擬檢測過程
-    private fun runThread() {
+    // 用 Coroutine 模擬檢測過程
+    private fun runCoroutine() {
         tvWeightResult.text = "標準體重\n無"
         tvFatResult.text = "體脂肪\n無"
         tvBmiResult.text = "BMI\n無"
@@ -78,22 +82,13 @@ class MainActivity : AppCompatActivity() {
         // 顯示進度條
         llProgress.visibility = View.VISIBLE
 
-        Thread {
+        CoroutineScope(Dispatchers.Main).launch {
             var progress = 0
-            // 建立迴圈執行一百次共延長五秒
             while (progress < 100) {
-                // 執行緒延遲 50ms 後執行
-                try {
-                    Thread.sleep(50)
-                } catch (ignored: InterruptedException) {
-                }
-                // 計數加一
+                delay(50)
                 progress++
-                // 切換到 Main Thread 執行進度更新
-                runOnUiThread {
-                    progressBar.progress = progress
-                    tvProgress.text = "$progress%"
-                }
+                progressBar.progress = progress
+                tvProgress.text = "$progress%"
             }
 
             val height = edHeight.text.toString().toDouble() // 身高
@@ -106,13 +101,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Pair((height - 70) * 0.6, 1.39 * bmi + 0.16 * age - 9)
             }
-            // 切換到 Main Thread 更新畫面
-            runOnUiThread {
-                llProgress.visibility = View.GONE
-                tvWeightResult.text = "標準體重 \n${String.format("%.2f", standWeight)}"
-                tvFatResult.text = "體脂肪 \n${String.format("%.2f", bodyFat)}"
-                tvBmiResult.text = "BMI \n${String.format("%.2f", bmi)}"
-            }
-        }.start()
+            llProgress.visibility = View.GONE
+            tvWeightResult.text = "標準體重 \n${String.format("%.2f", standWeight)}"
+            tvFatResult.text = "體脂肪 \n${String.format("%.2f", bodyFat)}"
+            tvBmiResult.text = "BMI \n${String.format("%.2f", bmi)}"
+        }
     }
 }
