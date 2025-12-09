@@ -6,6 +6,7 @@ import android.widget.GridView
 import android.widget.ListView
 import android.widget.Spinner
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -58,5 +59,21 @@ class MainActivity : AppCompatActivity() {
         gridView.adapter = MyAdapter(this, item, R.layout.adapter_vertical)
         // 建立 MyAdapter 物件，並傳入 adapter_horizontal 作為畫面
         listView.adapter = MyAdapter(this, item, R.layout.adapter_horizontal)
+
+        // 設定 GridView 的點擊監聽器
+        gridView.setOnItemClickListener { _, _, position, _ ->
+
+            val selectedFruit = item[position]
+            val selectedCountStr = spinner.selectedItem.toString()
+            val quantity = selectedCountStr.filter { it.isDigit() }.toInt()
+            val totalPrice = selectedFruit.price * quantity
+
+            // 建立並顯示 AlertDialog
+            AlertDialog.Builder(this)
+                .setTitle("購買資訊")
+                .setMessage("您選擇了 ${selectedFruit.name}\n數量：$quantity\n總金額：$totalPrice 元")
+                .setPositiveButton("確定", null)
+                .show()
+        }
     }
 }
